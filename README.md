@@ -7,7 +7,6 @@ Agent skill collection for [opencode](https://opencode.ai) — installable audit
 | Skill | What it does |
 | --- | --- |
 | [`acquaint`](acquaint/SKILL.md) | Read a project's `AGENTS.md` and linked docs, then extract actionable rules — behavior, workflows, constraints — instead of summarizing the files |
-| [`browser-use`](browser-use/SKILL.md) | Drive a real browser over CDP for interaction, scraping, screenshots, and logged-in sessions; escalates only when a plain fetch will not do |
 | [`claude`](claude/SKILL.md) | Read and act on Claude.ai conversations through `claude-cli`, including a progressive back-and-forth to reach a shared conclusion |
 | [`community-standards`](community-standards/SKILL.md) | Generate `README.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `LICENSE` for a project |
 | [`grilling`](grilling/SKILL.md) | Stress-test a plan or decision by walking a design tree in rounds, one numbered frontier at a time |
@@ -32,15 +31,14 @@ which path yours reads, then copy the skills you want.
 
 ## Requirements
 
-Every skill here is plain Markdown and installs by copying, but five of them drive
-tools that are **not** part of this repository. Copying one of these into place
-gets you a skill that loads and then does nothing, because the binary it wraps is
-missing. Check this table before you install.
+Every skill here is plain Markdown and installs by copying, but four of them depend on
+something that is **not** part of this repository. Copying one of these into place gets
+you a skill that loads and then does nothing, because what it drives is missing. Check
+this table before you install.
 
 | Skill | Needs |
 | --- | --- |
 | [`acquaint`](acquaint/SKILL.md) | An `AGENTS.md` — either at your workspace root or at `~/.local/share/opencode/AGENTS.md`. Without one the skill asks you for a path and stops. |
-| [`browser-use`](browser-use/SKILL.md) | [`tools/bu`](tools/bu) plus `browser-harness` and a CDP-enabled Brave. |
 | [`claude`](claude/SKILL.md) | [`tools/claude-cli`](tools/claude-cli), then authenticate it with your own cookie. |
 | [`herdr`](herdr/SKILL.md) | The `herdr` binary, plus a session already inside Herdr — the skill checks `HERDR_ENV=1` before every command. |
 | [`pc-clean`](pc-clean/SKILL.md) | Arch Linux with `pacman`. Its `scan.sh` is included and resolves relative to the installed skill path. |
@@ -48,8 +46,8 @@ missing. Check this table before you install.
 The remaining six — `community-standards`, `grilling`, `improve`, `refactor`,
 `research`, `teach` — need nothing but the Markdown itself.
 
-[`tools/`](tools/README.md) carries install instructions and pinned versions for all
-four dependencies.
+[`tools/`](tools/README.md) carries install instructions and pinned versions for the
+dependencies that can be carried.
 
 ## Anatomy
 

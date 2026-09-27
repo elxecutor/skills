@@ -1,27 +1,14 @@
 # tools
 
-Four skills in this collection wrap programs that live outside the repository. Two
-of those programs are small scripts kept here. The other two are third-party and
-have to be installed.
+Three skills in this collection depend on programs that live outside the repository.
+One of those programs is a small script kept here. The other two have to be installed
+separately.
 
 | Skill | Needs | Provided here |
 | --- | --- | --- |
-| [`browser-use`](../browser-use/SKILL.md) | `bu` and `browser-harness` | [`bu`](bu) only |
 | [`claude`](../claude/SKILL.md) | `claude-cli` | [`claude-cli`](claude-cli) |
 | [`herdr`](../herdr/SKILL.md) | the `herdr` binary | no — install it |
 | [`acquaint`](../acquaint/SKILL.md) | an `AGENTS.md` | no — yours to write |
-
-## bu
-
-A nine-line shell wrapper. It reads Brave's `DevToolsActivePort` file to discover the
-live debugger endpoint, exports it as `BU_CDP_WS`, and hands off to `browser-harness`.
-The indirection exists so a skill never has to guess which port the browser picked.
-
-```bash
-install -m 755 tools/bu ~/.local/bin/bu
-```
-
-It sources `~/.local/bin/env`, so that file has to exist.
 
 ## claude-cli
 
@@ -39,17 +26,6 @@ The `--update-cookie` step is interactive: it prints the cookies it needs
 out of your signed-in browser, then writes them to
 `~/.config/opencode/claude-cookie`. No credential is stored in this repository —
 only the names of the cookies the tool reads.
-
-## browser-harness
-
-Not in this repository. It is a published Python package, and the `browser-harness`
-file you may already have at `~/.local/bin/` is a shim that uv generates — it hardcodes
-the absolute path of its own virtualenv, which is why it is not portable and not
-committed here. Install the package and uv writes an equivalent shim for you:
-
-```bash
-uv tool install browser-harness   # tested against 0.1.13, requires Python >= 3.11
-```
 
 ## herdr
 

@@ -1,9 +1,0 @@
-#!/bin/sh
-. "$HOME/.local/bin/env"
-DTP="$HOME/.config/BraveSoftware/Brave-Browser/DevToolsActivePort"
-if [ -f "$DTP" ]; then
-  PORT=$(head -1 "$DTP")
-  WSPATH=$(tail -1 "$DTP")
-  export BU_CDP_WS="ws://127.0.0.1:${PORT}${WSPATH}"
-fi
-exec browser-harness "$@"
