@@ -28,8 +28,29 @@ cp -r skills/improve ~/.agents/skills/
 ```
 
 Some setups scan `~/.config/opencode/skills/` instead of `~/.agents/skills/`. Check
-which path yours reads, then copy the skills you want — nothing else in this
-repository is needed at runtime.
+which path yours reads, then copy the skills you want.
+
+## Requirements
+
+Every skill here is plain Markdown and installs by copying, but five of them drive
+tools that are **not** part of this repository. Copying one of these into place
+gets you a skill that loads and then does nothing, because the binary it wraps is
+missing. Check this table before you install.
+
+| Skill | Needs |
+| --- | --- |
+| [`acquaint`](acquaint/SKILL.md) | An `AGENTS.md` — either at your workspace root or at `~/.local/share/opencode/AGENTS.md`. Without one the skill asks you for a path and stops. |
+| [`browser-use`](browser-use/SKILL.md) | `bu` at `~/.local/bin/bu`, and Brave running with a CDP port so `DevToolsActivePort` can be read. |
+| [`claude`](claude/SKILL.md) | `claude-cli` at `~/.local/bin/claude-cli`, plus an authenticated cookie at `~/.config/opencode/claude-cookie`. |
+| [`herdr`](herdr/SKILL.md) | A session already running inside Herdr, indicated by `HERDR_ENV=1`. The skill checks this before every command. |
+| [`pc-clean`](pc-clean/SKILL.md) | Arch Linux with `pacman`. Its `scan.sh` is included and resolves relative to the installed skill path. |
+
+The remaining six — `community-standards`, `grilling`, `improve`, `refactor`,
+`research`, `teach` — need nothing but the Markdown itself.
+
+The three that wrap a browser session (`browser-use`, `claude`, `herdr`) are the
+narrowest fit: they are written against one person's local toolchain, so expect
+to adjust paths before they work on your machine.
 
 ## Anatomy
 
