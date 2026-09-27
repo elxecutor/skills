@@ -40,17 +40,16 @@ missing. Check this table before you install.
 | Skill | Needs |
 | --- | --- |
 | [`acquaint`](acquaint/SKILL.md) | An `AGENTS.md` — either at your workspace root or at `~/.local/share/opencode/AGENTS.md`. Without one the skill asks you for a path and stops. |
-| [`browser-use`](browser-use/SKILL.md) | `bu` at `~/.local/bin/bu`, and Brave running with a CDP port so `DevToolsActivePort` can be read. |
-| [`claude`](claude/SKILL.md) | `claude-cli` at `~/.local/bin/claude-cli`, plus an authenticated cookie at `~/.config/opencode/claude-cookie`. |
-| [`herdr`](herdr/SKILL.md) | A session already running inside Herdr, indicated by `HERDR_ENV=1`. The skill checks this before every command. |
+| [`browser-use`](browser-use/SKILL.md) | [`tools/bu`](tools/bu) plus `browser-harness` and a CDP-enabled Brave. |
+| [`claude`](claude/SKILL.md) | [`tools/claude-cli`](tools/claude-cli), then authenticate it with your own cookie. |
+| [`herdr`](herdr/SKILL.md) | The `herdr` binary, plus a session already inside Herdr — the skill checks `HERDR_ENV=1` before every command. |
 | [`pc-clean`](pc-clean/SKILL.md) | Arch Linux with `pacman`. Its `scan.sh` is included and resolves relative to the installed skill path. |
 
 The remaining six — `community-standards`, `grilling`, `improve`, `refactor`,
 `research`, `teach` — need nothing but the Markdown itself.
 
-The three that wrap a browser session (`browser-use`, `claude`, `herdr`) are the
-narrowest fit: they are written against one person's local toolchain, so expect
-to adjust paths before they work on your machine.
+[`tools/`](tools/README.md) carries install instructions and pinned versions for all
+four dependencies.
 
 ## Anatomy
 
