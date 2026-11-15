@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: 'Surgical code refactoring to improve maintainability without changing behavior. Covers extracting functions, renaming variables, breaking down god functions, improving type safety, eliminating code smells, and applying design patterns. Less drastic than repo-rebuilder; use for gradual improvements.'
+description: Improve code structure and maintainability without changing external behavior through small, verified refactorings. Use for cleanup, extracting or renaming code, reducing complexity, improving type safety, removing code smells, or gradual design improvements.
 license: MIT
 ---
 
@@ -174,14 +174,14 @@ Use this skill when:
 - class Order {
 -   calculateDiscount(user) {
 -     if (user.membershipLevel === 'gold') {
-+       return this.total * 0.2;
-+     }
-+     if (user.accountAge > 365) {
-+       return this.total * 0.1;
-+     }
-+     return 0;
-+   }
-+ }
+-       return this.total * 0.2;
+-     }
+-     if (user.accountAge > 365) {
+-       return this.total * 0.1;
+-     }
+-     return 0;
+-   }
+- }
 
 # GOOD: Move logic to the object that owns the data
 + class User {
@@ -273,19 +273,19 @@ Use this skill when:
 -       if (order.user.isActive) {
 -         if (order.total > 0) {
 -           return processOrder(order);
-+         } else {
-+           return { error: 'Invalid total' };
-+         }
-+       } else {
-+         return { error: 'User inactive' };
-+       }
-+     } else {
-+       return { error: 'No user' };
-+     }
-+   } else {
-+     return { error: 'No order' };
-+   }
-+ }
+-         } else {
+-           return { error: 'Invalid total' };
+-         }
+-       } else {
+-         return { error: 'User inactive' };
+-       }
+-     } else {
+-       return { error: 'No user' };
+-     }
+-   } else {
+-     return { error: 'No order' };
+-   }
+- }
 
 # GOOD: Guard clauses / early returns
 + function process(order) {
@@ -330,8 +330,10 @@ Use this skill when:
 -   process(order) {
 -     order.user.profile.address.street;  // Too intimate
 -     order.repository.connection.config;  // Breaking encapsulation
-+   }
-+ }
+-     order.user.paymentGateway.credentials;  // Reaching through 4 objects
+-     const address = order.user.profile.address.street;  // Should ask order
+-   }
+- }
 
 # GOOD: Ask, don't tell
 + class OrderProcessor {
@@ -473,10 +475,10 @@ Use this skill when:
 -     return order.total > 50 ? 0 : 5.99;
 -   } else if (method === 'express') {
 -     return order.total > 100 ? 9.99 : 14.99;
-+   } else if (method === 'overnight') {
-+     return 29.99;
-+   }
-+ }
+-   } else if (method === 'overnight') {
+-     return 29.99;
+-   }
+- }
 
 # After: Strategy pattern
 + interface ShippingStrategy {
@@ -513,12 +515,12 @@ Use this skill when:
 - function validate(user) {
 -   const errors = [];
 -   if (!user.email) errors.push('Email required');
-+   else if (!isValidEmail(user.email)) errors.push('Invalid email');
-+   if (!user.name) errors.push('Name required');
-+   if (user.age < 18) errors.push('Must be 18+');
-+   if (user.country === 'blocked') errors.push('Country not supported');
-+   return errors;
-+ }
+-   else if (!isValidEmail(user.email)) errors.push('Invalid email');
+-   if (!user.name) errors.push('Name required');
+-   if (user.age < 18) errors.push('Must be 18+');
+-   if (user.country === 'blocked') errors.push('Country not supported');
+-   return errors;
+- }
 
 # After: Chain of responsibility
 + abstract class Validator {

@@ -1,0 +1,20 @@
+#!/bin/sh
+# Self-contained launcher for the official Kaggle CLI.
+set -eu
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/opencode-skills/kaggle"
+BIN="$CACHE/bin/kaggle"
+if [ ! -x "$BIN" ]; then
+  UV=$(command -v uv || true)
+  if [ -z "$UV" ]; then
+    command -v curl >/dev/null || { echo "Kaggle skill needs curl to bootstrap uv" >&2; exit 1; }
+    mkdir -p "$CACHE/uv"
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="$CACHE/uv" sh
+    UV="$CACHE/uv/uv"
+  fi
+  mkdir -p "$CACHE/bin" "$CACHE/uv-tools"
+  UV_TOOL_DIR="$CACHE/uv-tools" UV_TOOL_BIN_DIR="$CACHE/bin" "$UV" tool install kaggle
+fi
+export HOME="$DIR"
+export KAGGLE_CONFIG_DIR="$DIR/.kaggle"
+exec "$BIN" "$@"

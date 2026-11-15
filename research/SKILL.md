@@ -1,6 +1,6 @@
 ---
 name: research
-description: Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.
+description: Research a question using high-trust primary sources, cite the findings, and save them as a Markdown note in the repository. Use for factual investigations, documentation or API research, and delegated reading work.
 ---
 
 Spin up a **background agent** to do the research, so you keep working while it reads.

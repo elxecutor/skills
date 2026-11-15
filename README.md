@@ -1,18 +1,24 @@
 # skills
 
-Agent skill collection for [opencode](https://opencode.ai) — installable audits, refactors, research, and workflow rules.
+Agent skill collection for [opencode](https://opencode.ai) — installable browser, research, productivity, and workflow skills.
 
 ## Skills
 
 | Skill | What it does |
 | --- | --- |
+| [`acquaint`](acquaint/SKILL.md) | Read project instructions and extract actionable conventions, workflows, and constraints |
+| [`browser-use`](browser-use/SKILL.md) | Control Chromium through CDP for interactive, authenticated, and Tor browser tasks |
+| [`claude`](claude/SKILL.md) | Access Claude.ai conversations through the local `claude-cli` wrapper |
 | [`community-standards`](community-standards/SKILL.md) | Generate `README.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `LICENSE` for a project |
 | [`grilling`](grilling/SKILL.md) | Stress-test a plan or decision by walking a design tree in rounds, one numbered frontier at a time |
 | [`improve`](improve/SKILL.md) | Audit a codebase read-only and hand off prioritized, self-contained implementation plans to another model |
-| [`pc-clean`](pc-clean/SKILL.md) | Report bloat on Arch Linux — ghost launchers, orphaned packages, wasteful caches, redundant venvs — without ever running a removal |
+| [`jiji`](jiji/SKILL.md) | Search and vet current Jiji Nigeria listings |
+| [`jumia`](jumia/SKILL.md) | Search Jumia Nigeria through its public endpoints |
+| [`kaggle`](kaggle/SKILL.md) | Run private Kaggle notebook jobs remotely and retrieve model artifacts |
+| [`pc-clean`](pc-clean/SKILL.md) | Inspect hidden home files and folders and report cautious cleanup candidates without making changes |
 | [`refactor`](refactor/SKILL.md) | Surgical, behavior-preserving code refactors: extract, rename, decompose, tighten types, apply patterns |
 | [`research`](research/SKILL.md) | Hand a question to a background agent that reads primary sources and writes cited findings into the repo |
-| [`teach`](teach/SKILL.md) | Teach a topic across sessions, keeping glossary, mission, learning record, and resources in the workspace |
+| [`teach`](teach/SKILL.md) | Teach a topic across sessions with structured learning records and practice |
 
 ## Install
 
@@ -26,10 +32,11 @@ cp -r skills/refactor ~/.agents/skills/
 Some setups scan `~/.config/opencode/skills/` instead of `~/.agents/skills/`. Check
 which path yours reads, then copy the skills you want.
 
-Six of these seven need nothing but the Markdown itself. The exception is
-[`pc-clean`](pc-clean/SKILL.md), which assumes Arch Linux and `pacman`; its
-`scan.sh` ships in the repository and resolves relative to wherever you install the
-skill.
+Most skills need only their Markdown and bundled references. Some include helper
+scripts or rely on local tools and authentication; each skill documents its setup.
+Never distribute local credentials (for example, Kaggle API tokens or Claude
+session cookies). The `claude` and `kaggle` credential files are intentionally
+excluded from this repository.
 
 ## Anatomy
 

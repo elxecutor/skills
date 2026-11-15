@@ -1,6 +1,6 @@
 ---
 name: community-standards
-description: 'Create community standards files for the project: README, Code of Conduct, Contributing, License'
+description: Create or improve a project's open-source community documents: README, CODE_OF_CONDUCT.md, CONTRIBUTING.md, and LICENSE. Use when preparing a repository for public contributors or standardizing its project documentation.
 ---
 
 ## Role

@@ -1,0 +1,41 @@
+#!/bin/sh
+# Self-contained Browser Harness launcher. Dependencies stay in this skill folder.
+set -eu
+
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/opencode-skills/browser-use"
+BIN="$CACHE/bin/browser-harness"
+TOOLS="$CACHE/uv-tools"
+
+if [ ! -x "$BIN" ]; then
+  UV=$(command -v uv || true)
+  if [ -z "$UV" ]; then
+    command -v curl >/dev/null || { echo "browser-use needs curl to bootstrap uv" >&2; exit 1; }
+    mkdir -p "$CACHE/uv"
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="$CACHE/uv" sh
+    UV="$CACHE/uv/uv"
+  fi
+  mkdir -p "$CACHE/bin" "$TOOLS"
+  UV_TOOL_DIR="$TOOLS" UV_TOOL_BIN_DIR="$CACHE/bin" "$UV" tool install browser-harness
+fi
+
+# Browser Harness 0.1.13 omits the normal Linux Brave profile. Patch only this
+# skill-local install so it uses its patient local-CDP connection (which waits
+# for Chrome's Allow prompt) instead of forcing a short-timeout WS override.
+PYTHON="$TOOLS/browser-harness/bin/python"
+"$PYTHON" - "$TOOLS" <<'PY'
+from pathlib import Path
+import sys
+for path in Path(sys.argv[1]).glob('browser-harness/lib/python*/site-packages/browser_harness/daemon.py'):
+    source = path.read_text()
+    marker = '    ".config/BraveSoftware/Brave-Browser",\n'
+    if marker not in source:
+        source = source.replace('    ".config/google-chrome",\n', '    ".config/google-chrome",\n' + marker)
+        path.write_text(source)
+PY
+
+# Use the user's default remote-debuggable browser. An explicit BU_CDP_WS can
+# intentionally select a remote browser endpoint. Browser installation is not
+# this skill's job; keeping that external makes the skill portable and light.
+if [ -n "${BU_CDP_WS:-}" ]; then exec "$BIN" "$@"; fi
+exec "$BIN" "$@"

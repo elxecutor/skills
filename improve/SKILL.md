@@ -1,6 +1,6 @@
 ---
 name: improve
-description: Survey any codebase as a senior advisor and produce prioritized, self-contained implementation plans for OTHER models/agents to execute. Strictly read-only on source code — never implements, fixes, or refactors anything itself. Use when asked to audit a codebase, find improvement opportunities (bugs, security, performance, test coverage, tech debt, migrations, DX), suggest features or where to take the project next (roadmap, product direction), or generate handoff plans for another agent to implement.
+description: Audit a codebase read-only and produce prioritized, self-contained implementation plans for other agents. Use to identify bugs, security, performance, testing, maintenance, migration, DX, feature, or product-direction opportunities; it never implements source changes itself.
 license: MIT
 metadata:
   author: shadcn
