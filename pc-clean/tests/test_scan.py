@@ -59,25 +59,54 @@ class Entries:
 
 class ScannerTests(unittest.TestCase):
     def test_attribution_and_filename_safety(self):
-        self.assertIn("KDE Baloo", scan.describe(".local/share/baloo/index"))
-        self.assertIn("Firefox", scan.describe(".config/Firefox/profiles"))
-        self.assertIn("preserve", scan.describe(".ssh/id_ed25519"))
-        self.assertIn("name clue only", scan.describe(".unknown/file"))
+        self.assertIn("KDE Baloo", scan.describe(os.path.join(".local", "share", "baloo", "index")))
+        self.assertIn("Firefox", scan.describe(os.path.join(".config", "Firefox", "profiles")))
+        self.assertIn("preserve", scan.describe(os.path.join(".ssh", "id_ed25519")))
+        self.assertIn("name clue only", scan.describe(os.path.join(".unknown", "file")))
         self.assertIn("Bash startup", scan.describe(".bashrc"))
         self.assertIn("sensitive", scan.describe(".bash_history"))
         self.assertNotIn("\n", scan.display("/home/me/.config/line\nname"))
 
     def test_validation_and_exact_package_owner(self):
-        for name in ("visible", "..", ".", ".cache/../../etc"):
+        for name in ("..", ".", ".cache/../../etc", ".cache\\..\\..\\etc"):
             with self.assertRaises(argparse.ArgumentTypeError):
                 scan.hidden_name(name)
-        self.assertEqual(scan.hidden_name(".cache"), ".cache")
+        for name in (".cache", "AppData"):
+            self.assertEqual(scan.hidden_name(name), name)
+        if scan.IS_WINDOWS:
+            with mock.patch.object(scan, "windows_installed_programs",
+                                   return_value=[("Example App", r"C:\Apps\Example")]):
+                self.assertEqual(scan.package_owner(r"C:\Apps\Example\bin\app.exe"),
+                                 "registry install location: Example App")
+            self.assertEqual(scan.package_owner(r"C:\Elsewhere\file.txt"),
+                             "no per-file owner available on Windows")
         with mock.patch.object(scan.shutil, "which", return_value="/usr/bin/pacman"), \
              mock.patch.object(scan.subprocess, "run", return_value=types.SimpleNamespace(returncode=0, stdout="example\n")) as run:
             self.assertEqual(scan.pacman_owner("/home/me/.local/a"), "pacman: example")
             self.assertEqual(run.call_args.args[0], ["pacman", "-Qqo", "--", "/home/me/.local/a"])
         with mock.patch.object(scan.shutil, "which", return_value=None):
             self.assertEqual(scan.pacman_owner("/home/me/.local/a"), "pacman unavailable")
+
+    def test_allocated_prefers_reported_blocks(self):
+        sparse = info(stat.S_IFREG, size=10_000, blocks=0)
+        self.assertEqual(scan.allocated(sparse), 0)
+        normal = info(stat.S_IFREG, size=10_000, blocks=8)
+        self.assertEqual(scan.allocated(normal), 4096)
+        no_blocks = types.SimpleNamespace(st_mode=stat.S_IFREG, st_size=10_000)
+        self.assertEqual(scan.allocated(no_blocks), 10_000)
+
+    def test_hidden_detection(self):
+        self.assertTrue(scan.is_hidden(".cache", info(stat.S_IFDIR)))
+        self.assertFalse(scan.is_hidden("projects", info(stat.S_IFDIR)))
+        hidden_dir = info(stat.S_IFDIR)
+        hidden_dir.st_file_attributes = getattr(stat, "FILE_ATTRIBUTE_HIDDEN", 2)
+        self.assertTrue(scan.is_hidden("IntelGraphicsProfiles", hidden_dir))
+        if scan.IS_WINDOWS:
+            self.assertTrue(scan.is_hidden("AppData", info(stat.S_IFDIR)))
+        else:
+            self.assertFalse(scan.is_hidden("AppData", info(stat.S_IFDIR)))
+        self.assertFalse(scan.is_link_like(info(stat.S_IFDIR)))
+        self.assertTrue(scan.is_link_like(info(stat.S_IFLNK)))
 
     def test_walk_skips_symlinks_mounts_and_deduplicates_hardlinks(self):
         home = "/home/me"
@@ -152,16 +181,16 @@ class ScannerTests(unittest.TestCase):
              mock.patch.object(scan.os.path, "realpath", return_value=home), \
              mock.patch.object(scan.os, "scandir", side_effect=lambda _: Entries(entries)), \
              mock.patch.object(scan.Inventory, "scan", new=fake_scan), \
-             mock.patch.object(scan, "pacman_owner", return_value="no pacman owner established"), \
+             mock.patch.object(scan, "package_owner", return_value="no package owner established"), \
              contextlib.redirect_stdout(output):
             self.assertEqual(scan.main([]), 0)
         self.assertEqual(seen, [home + "/.cache", home + "/.config"])
-        self.assertIn("NOT FOLLOWED (hidden home symlink): /home/me/.linked", output.getvalue())
+        self.assertIn("NOT FOLLOWED (hidden home link/reparse point): /home/me/.linked", output.getvalue())
         self.assertIn("NOT OPENED (hidden home socket): /home/me/.socket", output.getvalue())
         self.assertNotIn(home + "/projects", output.getvalue())
         self.assertIn(home + "/.bashrc", output.getvalue())
         self.assertIn("Bash startup settings", output.getvalue())
-        self.assertIn("1 home dotfile(s)", output.getvalue())
+        self.assertIn("1 home hidden file(s)", output.getvalue())
         self.assertIn("No changes were made.", output.getvalue())
 
     def test_dotfiles_are_included_in_largest_files(self):
@@ -182,7 +211,7 @@ class ScannerTests(unittest.TestCase):
              mock.patch.object(scan.os.path, "realpath", return_value=home), \
              mock.patch.object(scan.os, "scandir", side_effect=lambda _: Entries(entries)), \
              mock.patch.object(scan.Inventory, "scan") as scan_directory, \
-             mock.patch.object(scan, "pacman_owner", return_value="no pacman owner established"), \
+             mock.patch.object(scan, "package_owner", return_value="no package owner established"), \
              contextlib.redirect_stdout(output):
             self.assertEqual(scan.main(["--dotfiles-only"]), 0)
         scan_directory.assert_not_called()
@@ -218,12 +247,28 @@ class ScannerTests(unittest.TestCase):
              contextlib.redirect_stdout(output):
             self.assertEqual(scan.main(["--folder", ".cache"]), 0)
         self.assertEqual(seen, [home + "/.cache"])
-        self.assertIn("selected hidden directory /home/me/.cache only", output.getvalue())
+        self.assertIn("selected hidden directory", output.getvalue())
+        self.assertIn(".cache only", output.getvalue())
         self.assertNotIn(home + "/.config", output.getvalue())
         self.assertNotIn(home + "/.bashrc", output.getvalue())
 
+    def test_visible_folder_is_reported_as_not_hidden(self):
+        home = "/home/me"
+        entries = [Entry(home + "/Documents", info(stat.S_IFDIR)),
+                   Entry(home + "/.cache", info(stat.S_IFDIR))]
+        error = io.StringIO()
+        with mock.patch.object(scan.os.path, "expanduser", return_value=home), \
+             mock.patch.object(scan.os.path, "realpath", return_value=home), \
+             mock.patch.object(scan.os, "scandir", side_effect=lambda _: Entries(entries)), \
+             mock.patch.object(scan.Inventory, "scan") as scan_directory, \
+             contextlib.redirect_stderr(error):
+            self.assertEqual(scan.main(["--folder", "Documents"]), 2)
+        scan_directory.assert_not_called()
+        self.assertIn("exists but is not a hidden entry", error.getvalue())
+
     def test_protected_home_is_refused(self):
-        with mock.patch.object(scan.os.path, "expanduser", return_value="/root"), \
+        protected_home = os.environ.get("SystemRoot") or r"C:\Windows" if scan.IS_WINDOWS else "/root"
+        with mock.patch.object(scan.os.path, "expanduser", return_value=protected_home), \
              contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(scan.main([]), 2)
 
